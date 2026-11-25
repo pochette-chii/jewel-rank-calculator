@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <title>ジュエルランク計算機 シンプル版</title>
+  <style>
+    /* =========================================
+       CSS：見た目を決める部分
+       色はここでまとめて変えられるようにした
+       ========================================= */
+    :root {
+      --bg: #fff6f8;
+      --card: #ffffff;
+      --text: #3d2b33;
+      --sub: #7a5f6b;
+      --pink: #e85d8a;
+      --pink-dark: #d14a77;
+      --pink-light: #ffe4ec;
+      --border: #f3cdd9;
+      --result-bg: #fff0f4;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e171b;
+        --card: #2a2126;
+        --text: #f9eef2;
+        --sub: #c9aeb9;
+        --pink: #ff7aa2;
+        --pink-dark: #ff8fb0;
+        --pink-light: #3d2631;
+        --border: #4a343f;
+        --result-bg: #35242d;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", sans-serif;
+      line-height: 1.7;
+    }
+
+    .wrap {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+    }
+
+    /* タイトル部分 */
+    .title {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .title .heart {
+      font-size: 28px;
+      line-height: 1;
+    }
+    h1 {
+      font-size: 26px;
+      margin: 8px 0 6px;
+      letter-spacing: 0.02em;
+    }
+    .title p {
+      margin: 0;
+      color: var(--sub);
+      font-size: 14px;
+    }
+
+    /* 入力カード */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+    .hint {
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--sub);
+    }
+
+    .field { margin-bottom: 18px; }
+    .field:last-of-type { margin-bottom: 20px; }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    input[type="number"] {
+      flex: 1;
+      min-width: 0;
+      min-height: 48px;
+      font-size: 18px;
+      padding: 10px 12px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      color: var(--text);
+    }
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--pink);
+    }
+    .unit {
+      font-size: 18px;
+      color: var(--pink);
+      font-weight: 700;
+    }
+
+    /* 計算ボタン */
+    button {
+      width: 100%;
+      min-height: 52px;
+      border: none;
+      border-radius: 999px;
+      background: var(--pink);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 12px 16px;
+    }
+    button:active { background: var(--pink-dark); }
+
+    /* 結果表示 */
+    .result {
+      display: none;
+      margin-top: 20px;
+      background: var(--result-bg);
+      border-radius: 12px;
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .result.is-show { display: block; }
+    .result .label {
+      font-size: 13px;
+      color: var(--sub);
+      margin: 0;
+    }
+    .result .number {
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin: 4px 0;
+      color: var(--pink-dark);
+    }
+    .result .number small { font-size: 18px; }
+    .result .formula {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: var(--sub);
+      word-break: break-all;
+    }
+    .error {
+      display: none;
+      margin-top: 14px;
+      font-size: 14px;
+      color: #c0392b;
+      text-align: center;
+    }
+    .error.is-show { display: block; }
+    @media (prefers-color-scheme: dark) {
+      .error { color: #ff9a8a; }
+    }
+
+    /* 説明セクション */
+    h2 {
+      font-size: 17px;
+      margin: 28px 0 10px;
+      padding-left: 10px;
+      border-left: 4px solid var(--pink);
+      line-height: 1.4;
+    }
+    .text-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      font-size: 14px;
+    }
+    .text-box ol, .text-box ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    .text-box li { margin: 6px 0; }
+    .text-box p { margin: 8px 0; }
+    code {
+      background: var(--pink-light);
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--sub);
+      font-size: 12px;
+      margin-top: 28px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- ===============================
+         HTML：ページの中身
+         =============================== -->
+    <header class="title">
+      <div class="heart" aria-hidden="true">♥</div>
+      <h1>ジュエルランク計算機</h1>
+      <p>あと何回プレイすればいいか、かんたんに計算できます</p>
+    </header>
+
+    <main>
+      <section class="card" aria-label="計算フォーム">
+        <!-- 入力1：目標までに必要な♥ -->
+        <div class="field">
+          <label for="mokuhyo">あと何♥ 必要？ <span class="hint">（画面の「MAXまで ♥○○」の数字）</span></label>
+          <div class="input-row">
+            <input type="number" id="mokuhyo" inputmode="numeric" min="1" placeholder="例：120" />
+            <span class="unit">♥</span>
+          </div>
+        </div>
+
+        <!-- 入力2：1プレイでもらえる♥ -->
+        <div class="field">
+          <label for="perPlay">1プレイでもらえる♥</label>
+          <div class="input-row">
+            <input type="number" id="perPlay" inputmode="numeric" min="1" placeholder="例：10" />
+            <span class="unit">♥</span>
+          </div>
+        </div>
+
+        <button type="button" id="keisanBtn">計算する</button>
+
+        <p class="error" id="errorMsg">数字を両方入れてね（1以上の数字）</p>
+
+        <!-- 結果はここに出る -->
+        <div class="result" id="resultBox" aria-live="polite">
+          <p class="label">あと約</p>
+          <p class="number"><span id="resultNum">0</span> <small>回プレイ</small></p>
+          <p class="formula" id="formulaText"></p>
+        </div>
+      </section>
+
+      <h2>使い方</h2>
+      <div class="text-box">
+        <ol>
+          <li>ゲーム画面で「MAXまで ♥○○」の数字を確認する</li>
+          <li>その数字を上の「あと何♥ 必要？」に入れる</li>
+          <li>1プレイでもらえる♥を入れて「計算する」を押す</li>
+        </ol>
+      </div>
+
+      <h2>このページのしくみ</h2>
+      <div class="text-box">
+        <p>3つの役割に分かれています。</p>
+        <ul>
+          <li><strong>HTML</strong> … 入力欄とボタンを置く</li>
+          <li><strong>CSS</strong> … ピンク色や丸みなど、見た目を整える</li>
+          <li><strong>JavaScript</strong> … ボタンを押したとき計算する</li>
+        </ul>
+        <p>計算は1つだけです。</p>
+        <p style="text-align:center; font-weight:700;">残りプレイ数 ＝ 必要な♥ ÷ 1プレイの♥</p>
+        <p>割り切れないときは足りなくならないように、<code>Math.ceil()</code> で切り上げています。たとえば 125 ÷ 10 = 12.5 なら、13回と表示します。</p>
+      </div>
+
+      <p class="footer">アイプリバースのジュエルランク用・個人用の計算メモです</p>
+    </main>
+  </div>
+
+  <script>
+    // =========================================
+    // JavaScript：計算する部分
+    // やることは「割って、切り上げる」だけ
+    // =========================================
+
+    var btn = document.getElementById('keisanBtn');
+    var resultBox = document.getElementById('resultBox');
+    var resultNum = document.getElementById('resultNum');
+    var formulaText = document.getElementById('formulaText');
+    var errorMsg = document.getElementById('errorMsg');
+
+    // ボタンが押されたら keisan() を実行する
+    btn.addEventListener('click', keisan);
+
+    // Enterキーでも計算できるようにする
+    document.getElementById('mokuhyo').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') keisan();
+    });
+    document.getElementById('perPlay').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') keisan();
+    });
+
+    function keisan() {
+      // 1. 入力された数字を取り出す
+      var mokuhyo = Number(document.getElementById('mokuhyo').value);
+      var perPlay = Number(document.getElementById('perPlay').value);
+
+      // 2. 空っぽや0のときはエラーを出す
+      if (!mokuhyo || !perPlay || mokuhyo < 1 || perPlay < 1) {
+        errorMsg.classList.add('is-show');
+        resultBox.classList.remove('is-show');
+        return;
+      }
+      errorMsg.classList.remove('is-show');
+
+      // 3. 計算：割り算して切り上げる
+      var kaisuu = Math.ceil(mokuhyo / perPlay);
+
+      // 4. 結果を表示する
+      resultNum.textContent = kaisuu;
+      formulaText.textContent = '計算： ' + mokuhyo + ' ÷ ' + perPlay + ' = ' + (mokuhyo / perPlay) + ' → 切り上げて ' + kaisuu + '回';
+      resultBox.classList.add('is-show');
+    }
+  </script>
+</body>
+</html>
